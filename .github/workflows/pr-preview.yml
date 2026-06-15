@@ -50,8 +50,30 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_SERVER_URL: ${{ github.server_url }}
 
-      - name: Generate preview password
-        run: echo "STORYBOOK_PASSWORD=$(openssl rand -hex 24)" >> "$GITHUB_ENV"
+      - name: Resolve preview password
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          existing_password="$(
+            gh api "repos/${REPOSITORY}/issues/${PR_NUMBER}/comments" \
+              --jq '[.[] | select(.user.login == "github-actions[bot]") | select((.body | contains("<!-- storybook-preview-comment -->")) or (.body | contains("## Storybook Preview"))) | .body] | last // ""' \
+              | sed -n 's/.*Password[^`]*`\([^`]*\)`.*/\1/p' \
+              | tail -n 1
+          )"
+
+          if [[ -n "${existing_password}" ]]; then
+            echo "::add-mask::${existing_password}"
+            echo "STORYBOOK_PASSWORD=${existing_password}" >> "$GITHUB_ENV"
+            exit 0
+          fi
+
+          preview_password="$(openssl rand -hex 24)"
+          echo "::add-mask::${preview_password}"
+          echo "STORYBOOK_PASSWORD=${preview_password}" >> "$GITHUB_ENV"
 
       - name: Deploy PR Storybook
         run: bun alchemy deploy --stage ${{ env.STAGE }} --yes

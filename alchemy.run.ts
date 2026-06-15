@@ -46,20 +46,20 @@ export default Alchemy.Stack(
         owner: repository.owner,
         repository: repository.name,
         issueNumber: pullRequestNumber,
-        body: Output.interpolate`
-          ## Storybook Preview
+        body: Output.interpolate`<!-- storybook-preview-comment -->
+## Storybook Preview
 
-          - **Stage:** \`${process.env.STAGE ?? `pr-${pullRequestNumber}`}\`
-          - **Storybook:** ${site.url}
-          - **Username:** \`admin\`
-          - **Password:** \`${previewPassword ?? "not available"}\`
+- **Stage:** \`${process.env.STAGE ?? `pr-${pullRequestNumber}`}\`
+- **Storybook:** [Open preview](${site.url})
+- **Username:** \`admin\`
+- **Password:** \`${previewPassword ?? "not available"}\`
 
-          ### Changed Stories
+### Changed Stories
 
-          ${changedStoriesMarkdown}
+${changedStoriesMarkdown}
 
-          Built from \`${process.env.GITHUB_SHA?.slice(0, 7) ?? "local"}\`.
-        `,
+Built from \`${process.env.GITHUB_SHA?.slice(0, 7) ?? "local"}\`.
+`,
       });
     }
 

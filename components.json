@@ -1,0 +1,21 @@
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "base-mira",
+  "rsc": false,
+  "tsx": true,
+  "tailwind": {
+    "config": "",
+    "css": "src/styles/globals.css",
+    "baseColor": "gray",
+    "cssVariables": true,
+    "prefix": ""
+  },
+  "iconLibrary": "lucide",
+  "aliases": {
+    "components": "@streamersuite/story-previews/components",
+    "utils": "@streamersuite/story-previews/lib/utils",
+    "hooks": "@streamersuite/story-previews/hooks",
+    "lib": "@streamersuite/story-previews/lib",
+    "ui": "@streamersuite/story-previews/components"
+  }
+}

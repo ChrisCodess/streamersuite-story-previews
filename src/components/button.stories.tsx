@@ -22,3 +22,10 @@ export const Outline: Story = {
     children: "Open Storybook",
   },
 };
+
+export const Compact: Story = {
+  args: {
+    size: "compact",
+    children: "PR ready",
+  },
+};

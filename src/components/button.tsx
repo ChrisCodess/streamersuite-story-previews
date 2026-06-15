@@ -3,7 +3,7 @@ import * as React from "react";
 import { cn } from "@streamersuite/story-previews/lib/utils";
 
 export type ButtonVariant = "default" | "secondary" | "outline" | "ghost" | "destructive";
-export type ButtonSize = "default" | "sm" | "lg" | "icon";
+export type ButtonSize = "default" | "compact" | "sm" | "lg" | "icon";
 
 export interface ButtonVariantOptions {
   variant?: ButtonVariant;
@@ -28,6 +28,7 @@ const variantClassNames: Record<ButtonVariant, string> = {
 
 const sizeClassNames: Record<ButtonSize, string> = {
   default: "h-7 gap-1 px-2",
+  compact: "h-5 gap-1 rounded-sm px-1.5 text-[0.625rem]",
   sm: "h-6 gap-1 px-2",
   lg: "h-8 gap-1 px-2.5",
   icon: "size-7",

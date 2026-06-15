@@ -23,6 +23,7 @@ export {
   type PreviewAlertProps,
   type PreviewAlertTone,
 } from "./components/preview-alert";
+export { PreviewMetric, type PreviewMetricProps } from "./components/preview-metric";
 export {
   BranchStorybookPanel,
   type BranchStorybookPanelProps,

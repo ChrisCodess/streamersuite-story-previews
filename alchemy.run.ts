@@ -37,6 +37,10 @@ export default Alchemy.Stack(
 
     if (pullRequestNumber && repository) {
       const previewPassword = process.env.STORYBOOK_PASSWORD;
+      const changedStories = getChangedStories();
+      const changedStoriesMarkdown = Output.map(site.url, (siteUrl) =>
+        formatChangedStories(siteUrl, changedStories),
+      );
 
       yield* GitHub.Comment("storybook-preview-comment", {
         owner: repository.owner,
@@ -47,9 +51,12 @@ export default Alchemy.Stack(
 
           - **Stage:** \`${process.env.STAGE ?? `pr-${pullRequestNumber}`}\`
           - **Storybook:** ${site.url}
-          - **Page story:** ${site.url}/?path=/story/pages-storybook-pr-site--screen
           - **Username:** \`admin\`
           - **Password:** \`${previewPassword ?? "not available"}\`
+
+          ### Changed Stories
+
+          ${changedStoriesMarkdown}
 
           Built from \`${process.env.GITHUB_SHA?.slice(0, 7) ?? "local"}\`.
         `,
@@ -84,6 +91,94 @@ function getWorkerName() {
     .replace(/^-|-$/g, "");
 
   return `streamersuite-story-previews-${normalizedStage || "local"}`;
+}
+
+interface ChangedStory {
+  id: string;
+  title: string;
+  name: string;
+  status: "added" | "changed";
+  matchedFiles: string[];
+  commit?: {
+    sha: string;
+    shortSha: string;
+    url?: string;
+  };
+}
+
+function getChangedStories() {
+  const rawChangedStories = process.env.CHANGED_STORIES_JSON;
+
+  if (!rawChangedStories) {
+    return [];
+  }
+
+  try {
+    const parsed: unknown = JSON.parse(rawChangedStories);
+
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+
+    return parsed.filter(isChangedStory);
+  } catch {
+    return [];
+  }
+}
+
+function isChangedStory(value: unknown): value is ChangedStory {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const candidate = value as Record<string, unknown>;
+
+  return (
+    typeof candidate.id === "string" &&
+    typeof candidate.title === "string" &&
+    typeof candidate.name === "string" &&
+    (candidate.status === "added" || candidate.status === "changed") &&
+    Array.isArray(candidate.matchedFiles) &&
+    candidate.matchedFiles.every((file) => typeof file === "string") &&
+    (candidate.commit === undefined || isCommitRef(candidate.commit))
+  );
+}
+
+function isCommitRef(value: unknown) {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const candidate = value as Record<string, unknown>;
+
+  return (
+    typeof candidate.sha === "string" &&
+    typeof candidate.shortSha === "string" &&
+    (candidate.url === undefined || typeof candidate.url === "string")
+  );
+}
+
+function formatChangedStories(siteUrl: string | undefined, stories: ChangedStory[]) {
+  if (stories.length === 0) {
+    return "- No changed stories detected.";
+  }
+
+  return stories
+    .map((story) => {
+      const label = `${story.title} / ${story.name}`;
+      const storyUrl = siteUrl
+        ? `${siteUrl}/?path=/story/${story.id}`
+        : `?path=/story/${story.id}`;
+      const commit = story.commit?.url
+        ? ` in [${story.commit.shortSha}](${story.commit.url})`
+        : story.commit
+          ? ` in \`${story.commit.shortSha}\``
+          : "";
+      const files = story.matchedFiles.map((file) => `\`${file}\``).join(", ");
+
+      return `- **${story.status}** [${label}](${storyUrl})${commit} — ${files}`;
+    })
+    .join("\n");
 }
 
 function getGitHubRepository() {

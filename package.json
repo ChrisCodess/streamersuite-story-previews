@@ -30,6 +30,7 @@
     "dev": "storybook dev -p 6007",
     "build": "tsc -p tsconfig.build.json && bun run build:css",
     "build:css": "mkdir -p dist/styles && cp src/styles/globals.css dist/styles/globals.css",
+    "changed-stories": "node scripts/detect-changed-stories.mjs",
     "storybook:build": "storybook build",
     "typecheck": "tsc --noEmit"
   },
